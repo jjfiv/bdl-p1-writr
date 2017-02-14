@@ -117,12 +117,35 @@ public class WritrServer extends AbstractHandler {
 
     String method = req.getMethod();
     String path = req.getPathInfo();
+    
+    // are we handling a form
     if("POST".equals(method) && "/submit".equals(path)) {
       handleForm(req, resp);
       return;
     }
+    
+    // /times2/24 -> 48
+    if("GET".equals(method) && path.startsWith("/times2/")) {
+		int number = Integer.parseInt(path.substring(8));
 
-    try (PrintWriter html = resp.getWriter()) {
+    	try (PrintWriter html = resp.getWriter()) {
+	    	html.println("<html>");
+	    	int answer = number*2;
+			html.println("<p>2 * "+number+" = " + answer+ "</p>");
+	    	html.println("<a href='/times2/"+answer+"'>What is 2 times "+answer+"?</a>");
+	    	html.println("</html>");
+    	}	
+    }
+
+    // if not, show the front page:
+    if("GET".equals(method) && ("/front".equals(path) || "/".equals(path))) {
+    	showFrontPage(resp);
+    }
+  }
+
+private void showFrontPage(HttpServletResponse resp) throws IOException {
+	try (PrintWriter html = resp.getWriter()) { // try with resources
+		// remembers to call close on html, even if exceptions are thrown or you forget
       printWritrPageStart(html, "Writr");
 
       // Print the form at the top of the page
@@ -149,7 +172,7 @@ public class WritrServer extends AbstractHandler {
       }
       printWritrPageEnd(html);
     }
-  }
+}
 
   /**
    * When a user submits (enter key) or pressed the "Write!" button, we'll get their request in here. This is called explicitly from handle, above.
